@@ -1,4 +1,4 @@
-const API_KEY = "3"; // TheSportsDB free test key
+const API_KEY = "123"; // TheSportsDB patreon key
 const BASE_URL = `https://www.thesportsdb.com/api/v1/json/${API_KEY}`;
 
 // DOM Elements
@@ -128,17 +128,33 @@ async function fetchTeamData(teamId) {
   setStatus("Loading match data...", false);
 
   try {
+    // Get the team name from storage to filter matches
+    const storageData = await new Promise((resolve) => {
+      chrome.storage.local.get(["teamName"], (result) => {
+        resolve(result);
+      });
+    });
+    const teamName = storageData.teamName;
+
     // Fetch Last 5 Events
     const lastRes = await fetch(`${BASE_URL}/eventslast.php?id=${teamId}`);
     if (!lastRes.ok) throw new Error(`HTTP error! status: ${lastRes.status}`);
     const lastData = await lastRes.json();
 
-    // Fetch Next 5 Events
+    // Get the last game
+    const lastGame = lastData.results?.[0];
+
+    // Fetch Next 5 Events using the working API key
     const nextRes = await fetch(`${BASE_URL}/eventsnext.php?id=${teamId}`);
     if (!nextRes.ok) throw new Error(`HTTP error! status: ${nextRes.status}`);
     const nextData = await nextRes.json();
 
-    updateUI(lastData.results?.[0], nextData.events?.[0]);
+    // Find the first upcoming match for this team
+    const nextGame = nextData.events?.find(event =>
+      event.strHomeTeam === teamName || event.strAwayTeam === teamName
+    );
+
+    updateUI(lastGame, nextGame);
     setStatus("", false); // Clear loading message
   } catch (error) {
     console.error("Data fetch error:", error);
@@ -186,20 +202,24 @@ function saveTeam(id, name) {
 function updateUI(lastGame, nextGame) {
   // Update Last Game
   if (lastGame) {
+    document.getElementById("last-league").textContent = lastGame.strLeague || "League";
     document.getElementById("last-home").textContent = lastGame.strHomeTeam;
     document.getElementById("last-away").textContent = lastGame.strAwayTeam;
     document.getElementById("last-score").textContent = `${lastGame.intHomeScore} - ${lastGame.intAwayScore}`;
     document.getElementById("last-date").textContent = lastGame.dateEvent;
   } else {
+    document.getElementById("last-league").textContent = "League";
     document.getElementById("last-score").textContent = "No recent data";
   }
 
   // Update Next Game
   if (nextGame) {
+    document.getElementById("next-league").textContent = nextGame.strLeague || "League";
     document.getElementById("next-home").textContent = nextGame.strHomeTeam;
     document.getElementById("next-away").textContent = nextGame.strAwayTeam;
     document.getElementById("next-date").textContent = `${nextGame.dateEvent} @ ${nextGame.strTime}`;
   } else {
+    document.getElementById("next-league").textContent = "League";
     document.getElementById("next-date").textContent = "No upcoming fixture found";
   }
 }
