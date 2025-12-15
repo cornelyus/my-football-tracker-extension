@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (result.teamId) {
-      showContent(result.teamName, result.teamBadge);
+      showContent(result.teamName, result.teamBadge, result.teamId);
       fetchTeamData(result.teamId);
     } else {
       showSearch();
@@ -197,7 +197,7 @@ function saveTeam(id, name, badge) {
       return;
     }
 
-    showContent(name, badge);
+    showContent(name, badge, id);
     fetchTeamData(id);
   });
 }
@@ -232,7 +232,7 @@ function showSearch() {
   contentSection.classList.add("hidden");
 }
 
-function showContent(teamName, teamBadge) {
+function showContent(teamName, teamBadge, teamId) {
   searchSection.classList.add("hidden");
   contentSection.classList.remove("hidden");
   document.getElementById("team-name").textContent = teamName;
@@ -243,6 +243,12 @@ function showContent(teamName, teamBadge) {
     teamLogo.style.display = "block";
   } else {
     teamLogo.style.display = "none";
+  }
+
+  // Set the TheSportsDB team page link
+  const teamLink = document.getElementById("team-link");
+  if (teamId) {
+    teamLink.href = `https://www.thesportsdb.com/team/${teamId}`;
   }
 }
 

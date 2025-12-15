@@ -68,6 +68,20 @@ button:hover { background-color: var(--hover-purple); }
   object-fit: contain;
 }
 
+.team-external-link {
+  color: var(--text-gray);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  opacity: 0.6;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.team-external-link:hover {
+  opacity: 1;
+  color: var(--primary-purple);
+}
+
 .text-btn {
   background: none;
   color: var(--text-gray);
