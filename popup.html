@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="container">
+    <div id="search-section">
+      <div class="search-tabs">
+        <button id="browse-tab" class="tab-btn active">Browse by League</button>
+        <button id="search-tab" class="tab-btn">Search by Name</button>
+      </div>
+
+      <div id="browse-view">
+        <select id="league-select" class="league-select">
+          <option value="">Select a league...</option>
+          <option value="English Premier League">English Premier League</option>
+          <option value="English League Championship">English League Championship</option>
+          <option value="Spanish La Liga">Spanish La Liga</option>
+          <option value="German Bundesliga">German Bundesliga</option>
+          <option value="Italian Serie A">Italian Serie A</option>
+          <option value="French Ligue 1">French Ligue 1</option>
+          <option value="Portuguese Liga">Portuguese Liga</option>
+          <option value="Dutch Eredivisie">Dutch Eredivisie</option>
+          <option value="Brazilian Serie A">Brazilian Serie A</option>
+          <option value="Scottish Premier League">Scottish Premier League</option>
+          <option value="Major League Soccer">Major League Soccer</option>
+        </select>
+
+        <div id="teams-list" class="teams-list hidden"></div>
+      </div>
+
+      <div id="search-view" class="hidden">
+        <input type="text" id="team-input" placeholder="Enter team name (e.g. Arsenal)">
+        <button id="search-btn">Save Team</button>
+      </div>
+    </div>
+
+    <div id="status-msg" class="hidden"></div>
+
+    <div id="content-section" class="hidden">
+      <div class="header">
+        <h2 id="team-name">Team Name</h2>
+        <button id="change-team-btn" class="text-btn">Change</button>
+      </div>
+
+      <div class="card result-card">
+        <h3>Last Result</h3>
+        <div class="match-info">
+          <span id="last-home">Home</span>
+          <span class="score" id="last-score">VS</span>
+          <span id="last-away">Away</span>
+        </div>
+        <div class="date" id="last-date">Date</div>
+      </div>
+
+      <div class="card fixture-card">
+        <h3>Next Fixture</h3>
+        <div class="match-info">
+          <span id="next-home">Home</span>
+          <span class="vs">VS</span>
+          <span id="next-away">Away</span>
+        </div>
+        <div class="date" id="next-date">Date</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

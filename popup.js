@@ -1,0 +1,222 @@
+const API_KEY = "3"; // TheSportsDB free test key
+const BASE_URL = `https://www.thesportsdb.com/api/v1/json/${API_KEY}`;
+
+// DOM Elements
+const searchSection = document.getElementById("search-section");
+const contentSection = document.getElementById("content-section");
+const teamInput = document.getElementById("team-input");
+const searchBtn = document.getElementById("search-btn");
+const changeTeamBtn = document.getElementById("change-team-btn");
+const statusMsg = document.getElementById("status-msg");
+
+// New tab and browse elements
+const browseTab = document.getElementById("browse-tab");
+const searchTab = document.getElementById("search-tab");
+const browseView = document.getElementById("browse-view");
+const searchView = document.getElementById("search-view");
+const leagueSelect = document.getElementById("league-select");
+const teamsList = document.getElementById("teams-list");
+
+// 1. Initialize: Check if user already has a team saved
+document.addEventListener("DOMContentLoaded", () => {
+  chrome.storage.local.get(["teamId", "teamName"], (result) => {
+    if (chrome.runtime.lastError) {
+      console.error("Storage error:", chrome.runtime.lastError);
+      showSearch();
+      return;
+    }
+
+    if (result.teamId) {
+      showContent(result.teamName);
+      fetchTeamData(result.teamId);
+    } else {
+      showSearch();
+    }
+  });
+});
+
+// 2. Tab Switching Logic
+browseTab.addEventListener("click", () => {
+  browseTab.classList.add("active");
+  searchTab.classList.remove("active");
+  browseView.classList.remove("hidden");
+  searchView.classList.add("hidden");
+  setStatus("", false);
+});
+
+searchTab.addEventListener("click", () => {
+  searchTab.classList.add("active");
+  browseTab.classList.remove("active");
+  searchView.classList.remove("hidden");
+  browseView.classList.add("hidden");
+  setStatus("", false);
+});
+
+// 3. League Selection Logic
+leagueSelect.addEventListener("change", async () => {
+  const leagueName = leagueSelect.value;
+  if (!leagueName) {
+    teamsList.classList.add("hidden");
+    teamsList.innerHTML = "";
+    return;
+  }
+
+  setStatus("Loading teams...", false);
+
+  try {
+    const res = await fetch(`${BASE_URL}/search_all_teams.php?l=${encodeURIComponent(leagueName)}`);
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    const data = await res.json();
+
+    if (!data.teams || data.teams.length === 0) {
+      setStatus("No teams found for this league.", true);
+      teamsList.classList.add("hidden");
+      return;
+    }
+
+    displayTeams(data.teams);
+    setStatus("", false);
+  } catch (error) {
+    console.error("League teams fetch error:", error);
+    setStatus("Error loading teams.", true);
+  }
+});
+
+// 4. Search Logic
+searchBtn.addEventListener("click", async () => {
+  const query = teamInput.value.trim();
+  if (!query) return;
+
+  setStatus("Searching...", false);
+
+  try {
+    const res = await fetch(`${BASE_URL}/searchteams.php?t=${encodeURIComponent(query)}`);
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    const data = await res.json();
+
+    if (!data.teams || data.teams.length === 0) {
+      setStatus("Team not found. Try exact name.", true);
+      return;
+    }
+
+    // Determine the most likely team (first result)
+    const team = data.teams[0];
+    saveTeam(team.idTeam, team.strTeam);
+  } catch (error) {
+    setStatus("Error fetching data.", true);
+    console.error("Search error:", error);
+  }
+});
+
+// 5. Reset/Change Team Logic
+changeTeamBtn.addEventListener("click", () => {
+  chrome.storage.local.remove(["teamId", "teamName"], () => {
+    if (chrome.runtime.lastError) {
+      console.error("Storage error:", chrome.runtime.lastError);
+      setStatus("Error clearing team data.", true);
+      return;
+    }
+
+    showSearch();
+    teamInput.value = "";
+    setStatus("", false);
+  });
+});
+
+// 6. Fetch Match Data (Last and Next)
+async function fetchTeamData(teamId) {
+  setStatus("Loading match data...", false);
+
+  try {
+    // Fetch Last 5 Events
+    const lastRes = await fetch(`${BASE_URL}/eventslast.php?id=${teamId}`);
+    if (!lastRes.ok) throw new Error(`HTTP error! status: ${lastRes.status}`);
+    const lastData = await lastRes.json();
+
+    // Fetch Next 5 Events
+    const nextRes = await fetch(`${BASE_URL}/eventsnext.php?id=${teamId}`);
+    if (!nextRes.ok) throw new Error(`HTTP error! status: ${nextRes.status}`);
+    const nextData = await nextRes.json();
+
+    updateUI(lastData.results?.[0], nextData.events?.[0]);
+    setStatus("", false); // Clear loading message
+  } catch (error) {
+    console.error("Data fetch error:", error);
+    setStatus("Could not load match data.", true);
+  }
+}
+
+// 7. Helper Functions
+function displayTeams(teams) {
+  // Sort teams alphabetically
+  teams.sort((a, b) => a.strTeam.localeCompare(b.strTeam));
+
+  teamsList.innerHTML = teams.map(team => `
+    <div class="team-item" data-team-id="${team.idTeam}" data-team-name="${team.strTeam}">
+      <img src="${team.strBadge}" alt="${team.strTeam}" class="team-badge" onerror="this.style.display='none'">
+      <span class="team-name">${team.strTeam}</span>
+    </div>
+  `).join("");
+
+  teamsList.classList.remove("hidden");
+
+  // Add click handlers
+  document.querySelectorAll(".team-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const teamId = item.dataset.teamId;
+      const teamName = item.dataset.teamName;
+      saveTeam(teamId, teamName);
+    });
+  });
+}
+
+function saveTeam(id, name) {
+  chrome.storage.local.set({ teamId: id, teamName: name }, () => {
+    if (chrome.runtime.lastError) {
+      console.error("Storage error:", chrome.runtime.lastError);
+      setStatus("Error saving team data.", true);
+      return;
+    }
+
+    showContent(name);
+    fetchTeamData(id);
+  });
+}
+
+function updateUI(lastGame, nextGame) {
+  // Update Last Game
+  if (lastGame) {
+    document.getElementById("last-home").textContent = lastGame.strHomeTeam;
+    document.getElementById("last-away").textContent = lastGame.strAwayTeam;
+    document.getElementById("last-score").textContent = `${lastGame.intHomeScore} - ${lastGame.intAwayScore}`;
+    document.getElementById("last-date").textContent = lastGame.dateEvent;
+  } else {
+    document.getElementById("last-score").textContent = "No recent data";
+  }
+
+  // Update Next Game
+  if (nextGame) {
+    document.getElementById("next-home").textContent = nextGame.strHomeTeam;
+    document.getElementById("next-away").textContent = nextGame.strAwayTeam;
+    document.getElementById("next-date").textContent = `${nextGame.dateEvent} @ ${nextGame.strTime}`;
+  } else {
+    document.getElementById("next-date").textContent = "No upcoming fixture found";
+  }
+}
+
+function showSearch() {
+  searchSection.classList.remove("hidden");
+  contentSection.classList.add("hidden");
+}
+
+function showContent(teamName) {
+  searchSection.classList.add("hidden");
+  contentSection.classList.remove("hidden");
+  document.getElementById("team-name").textContent = teamName;
+}
+
+function setStatus(msg, isError) {
+  statusMsg.textContent = msg;
+  statusMsg.classList.remove("hidden");
+  statusMsg.style.color = isError ? "red" : "black";
+}

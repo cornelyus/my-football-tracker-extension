@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "My Football Tracker",
+  "version": "1.0.0",
+  "description": "See last result and next fixture for your favorite team.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://www.thesportsdb.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Check Team Status"
+  }
+}
