@@ -56,6 +56,18 @@ button:hover { background-color: var(--hover-purple); }
   align-items: center;
 }
 
+.team-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
 .text-btn {
   background: none;
   color: var(--text-gray);

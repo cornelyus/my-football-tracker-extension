@@ -21,7 +21,7 @@ const teamsList = document.getElementById("teams-list");
 
 // 1. Initialize: Check if user already has a team saved
 document.addEventListener("DOMContentLoaded", () => {
-  chrome.storage.local.get(["teamId", "teamName"], (result) => {
+  chrome.storage.local.get(["teamId", "teamName", "teamBadge"], (result) => {
     if (chrome.runtime.lastError) {
       console.error("Storage error:", chrome.runtime.lastError);
       showSearch();
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (result.teamId) {
-      showContent(result.teamName);
+      showContent(result.teamName, result.teamBadge);
       fetchTeamData(result.teamId);
     } else {
       showSearch();
@@ -103,7 +103,7 @@ searchBtn.addEventListener("click", async () => {
 
     // Determine the most likely team (first result)
     const team = data.teams[0];
-    saveTeam(team.idTeam, team.strTeam);
+    saveTeam(team.idTeam, team.strTeam, team.strBadge);
   } catch (error) {
     setStatus("Error fetching data.", true);
     console.error("Search error:", error);
@@ -183,20 +183,21 @@ function displayTeams(teams) {
     item.addEventListener("click", () => {
       const teamId = item.dataset.teamId;
       const teamName = item.dataset.teamName;
-      saveTeam(teamId, teamName);
+      const teamBadge = item.querySelector('.team-badge')?.src || '';
+      saveTeam(teamId, teamName, teamBadge);
     });
   });
 }
 
-function saveTeam(id, name) {
-  chrome.storage.local.set({ teamId: id, teamName: name }, () => {
+function saveTeam(id, name, badge) {
+  chrome.storage.local.set({ teamId: id, teamName: name, teamBadge: badge }, () => {
     if (chrome.runtime.lastError) {
       console.error("Storage error:", chrome.runtime.lastError);
       setStatus("Error saving team data.", true);
       return;
     }
 
-    showContent(name);
+    showContent(name, badge);
     fetchTeamData(id);
   });
 }
@@ -231,10 +232,18 @@ function showSearch() {
   contentSection.classList.add("hidden");
 }
 
-function showContent(teamName) {
+function showContent(teamName, teamBadge) {
   searchSection.classList.add("hidden");
   contentSection.classList.remove("hidden");
   document.getElementById("team-name").textContent = teamName;
+
+  const teamLogo = document.getElementById("team-logo");
+  if (teamBadge) {
+    teamLogo.src = teamBadge;
+    teamLogo.style.display = "block";
+  } else {
+    teamLogo.style.display = "none";
+  }
 }
 
 function setStatus(msg, isError) {
