@@ -1,5 +1,7 @@
-const API_KEY = "123"; // TheSportsDB patreon key
-const BASE_URL = `https://www.thesportsdb.com/api/v1/json/${API_KEY}`;
+const API_KEY_FREE = "3"; // Free API key - works for team searches
+const API_KEY_PATREON = "123"; // Patreon API key - works for fixtures
+const BASE_URL_FREE = `https://www.thesportsdb.com/api/v1/json/${API_KEY_FREE}`;
+const BASE_URL_PATREON = `https://www.thesportsdb.com/api/v1/json/${API_KEY_PATREON}`;
 
 // DOM Elements
 const searchSection = document.getElementById("search-section");
@@ -64,7 +66,7 @@ leagueSelect.addEventListener("change", async () => {
   setStatus("Loading teams...", false);
 
   try {
-    const res = await fetch(`${BASE_URL}/search_all_teams.php?l=${encodeURIComponent(leagueName)}`);
+    const res = await fetch(`${BASE_URL_FREE}/search_all_teams.php?l=${encodeURIComponent(leagueName)}`);
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const data = await res.json();
 
@@ -90,7 +92,7 @@ searchBtn.addEventListener("click", async () => {
   setStatus("Searching...", false);
 
   try {
-    const res = await fetch(`${BASE_URL}/searchteams.php?t=${encodeURIComponent(query)}`);
+    const res = await fetch(`${BASE_URL_FREE}/searchteams.php?t=${encodeURIComponent(query)}`);
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const data = await res.json();
 
@@ -136,16 +138,16 @@ async function fetchTeamData(teamId) {
     });
     const teamName = storageData.teamName;
 
-    // Fetch Last 5 Events
-    const lastRes = await fetch(`${BASE_URL}/eventslast.php?id=${teamId}`);
+    // Fetch Last 5 Events using Patreon API key
+    const lastRes = await fetch(`${BASE_URL_PATREON}/eventslast.php?id=${teamId}`);
     if (!lastRes.ok) throw new Error(`HTTP error! status: ${lastRes.status}`);
     const lastData = await lastRes.json();
 
     // Get the last game
     const lastGame = lastData.results?.[0];
 
-    // Fetch Next 5 Events using the working API key
-    const nextRes = await fetch(`${BASE_URL}/eventsnext.php?id=${teamId}`);
+    // Fetch Next 5 Events using Patreon API key
+    const nextRes = await fetch(`${BASE_URL_PATREON}/eventsnext.php?id=${teamId}`);
     if (!nextRes.ok) throw new Error(`HTTP error! status: ${nextRes.status}`);
     const nextData = await nextRes.json();
 
