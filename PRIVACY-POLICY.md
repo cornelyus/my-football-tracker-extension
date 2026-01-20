@@ -50,10 +50,6 @@ We do not:
 - Collect any personally identifiable information
 - Track your browsing history or website activity
 
-## Children's Privacy
-
-This extension does not knowingly collect any information from children. The extension is suitable for all ages and does not require any personal information to function.
-
 ## Changes to This Policy
 
 We may update this privacy policy from time to time to reflect changes in the extension's functionality or legal requirements. Any changes will be reflected on this page and in the extension's Chrome Web Store listing.
