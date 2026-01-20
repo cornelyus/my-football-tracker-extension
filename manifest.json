@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "My Football Tracker",
-  "version": "1.0.0",
-  "description": "See last result and next fixture for your favorite team.",
+  "name": "Football Fan Tracker - Scores & Fixtures",
+  "version": "1.0.1",
+  "description": "Track your favorite football team's latest result and upcoming fixture from 11 major leagues worldwide - quick and easy!",
   "permissions": ["storage"],
   "host_permissions": [
     "https://www.thesportsdb.com/*"
